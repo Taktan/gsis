@@ -1,7 +1,14 @@
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
-      <div style="text-align:center;width:100%;" class="title">Получить квадратное изображение со спутника</div>
+      <div style="text-align:center;width:100%;line-height: 0px;" class="title">Получить квадратное изображение со спутника <span class="caption"><br />с помощью Google Earth Engine</span></div>
+      <v-progress-circular indeterminate v-if="!loadedGoogle"/>
+      <template v-else>
+        <v-btn v-if="!statusGoogle" icon color="red" @click="authenticate()"><v-icon>mdi-google</v-icon></v-btn>
+        <v-icon v-else color="green">mdi-google</v-icon>
+      </template>
+      
+      
     </v-app-bar>
 
     <v-main>
@@ -112,12 +119,17 @@
 </template>
 
 <script>
+import ee from '@google/earthengine'
+import privateJson from '../private.json'
+
 
 export default {
   name: 'App',
   components:{
   },
-
+  created(){
+    this.authenticate()
+  },
   data: () => ({
     loadedStartApp: false,
     dialogLoaded: false,
@@ -125,6 +137,8 @@ export default {
       active: false,
       text: "Тестовый текст"
     },
+    statusGoogle: false,
+    loadedGoogle: false,
 
     dateStart: new Date("2000-01-01").toISOString().substr(0, 10),
     dateEnd: new Date().toISOString().substr(0, 10),
@@ -150,6 +164,32 @@ export default {
       return this.$refs.leftPanel.clientWidth / (this.countInRow +   1)
     }
   },
+  methods:{
+    initialize(){
+      ee.initialize();
+      this.loadedGoogle = true;
+    },
+    authenticate(){
+      this.loadedGoogle = false;
+      ee.data.authenticateViaOauth(privateJson.clientID, ()=>{
+          this.statusGoogle = true
+          this.initialize()
+        }, (e) => {
+        console.error('Authentication error: ' + e);
+        this.statusGoogle = false;
+        this.loadedGoogle = true;
+      }, null, () => {
+        ee.data.authenticateViaPopup(()=>{
+          this.statusGoogle = true
+          this.initialize()
+        }, (e)=>{
+          console.log(e);
+          this.statusGoogle = false
+          this.loadedGoogle = true
+        });
+      });
+    }
+  }
 };
 </script>
 
