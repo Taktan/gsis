@@ -62,45 +62,7 @@
               
             </v-card>
           </div>
-          <div class="right-panel">
-            <v-card>
-              <v-card-text>
-                <v-img
-                  aspect-ratio="1"
-                  lazy-src="/out.jpg"
-                  src="/out.jpg"
-                  class="mb-4"
-                ></v-img>
-                <span class="subtitle-2">Координаты</span>
-                <div class="d-flex">
-                  <v-text-field label="Долгота" class="mr-1" outlined dense /> 
-                  <v-text-field label="Широта" outlined dense />
-                </div>
-                <span class="subtitle-2">Ограничение по времени</span>
-                <div class="d-flex">
-                  <v-menu v-model="menuDateStart" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y min-width="290px">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field v-model="dateStart" label="Начало" class="mr-1" readonly v-bind="attrs" v-on="on" outlined dense/>
-                    </template>
-                    <v-date-picker v-model="dateStart" @input="menuDateStart = false" />
-                  </v-menu>
-                  <v-menu v-model="menuDateEnd" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y min-width="290px">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field v-model="dateEnd" label="Конец" readonly v-bind="attrs" v-on="on" outlined dense/>
-                    </template>
-                    <v-date-picker v-model="dateEnd" @input="menuDateEnd = false" />
-                  </v-menu>
-                </div>
-                <div class="d-flex input-width-33">
-                  <v-text-field label="Площадь" outlined dense />
-                  <v-text-field class=" mx-1" label="Масштаб"  outlined dense />
-                  <v-select :items="satellites" outlined dense label="Спутник"></v-select>
-                </div>
-                <!-- <v-switch label="Цветное изображение"></v-switch> -->
-                <v-btn block color="primary" @click="snackbar.active = true">Получить</v-btn>
-              </v-card-text>
-            </v-card>
-          </div>
+          <right-panel />
         </div>
       </v-container>
     </v-main>
@@ -122,10 +84,10 @@
 import ee from '@google/earthengine'
 import privateJson from '../private.json'
 
-
 export default {
   name: 'App',
   components:{
+    'right-panel': () => import('./components/RightPanel')
   },
   created(){
     this.authenticate()
@@ -140,13 +102,6 @@ export default {
     statusGoogle: false,
     loadedGoogle: false,
 
-    dateStart: new Date("2000-01-01").toISOString().substr(0, 10),
-    dateEnd: new Date().toISOString().substr(0, 10),
-    menuDateStart: false,
-    menuDateEnd: false,
-
-    satellites: ['Sentinel-2', 'Landsat-8'],
-
     tabs: 1,
 
     countInRow: 5,
@@ -155,9 +110,6 @@ export default {
   mounted(){
     this.loadedStartApp = true;
     // this.widthCard = this.$refs.leftPanel.clientWidth / this.countInRow - 5 * this.countInRow
-  },
-  beforeUpdate(){
-    
   },
   computed:{ // TODO сделать проверку на числа при вводе долготы и широты, площади, масштаба
     widthCard(){
@@ -231,6 +183,7 @@ export default {
     width:430px;
     flex-shrink: 0;
     max-height:100%;
+    overflow: auto;
   }
 
   .container-all-height > .panels > div > .v-card{
