@@ -14,8 +14,9 @@
     <v-main>
       <v-container class="container-all-height" fluid style="height:'100%'">
         <div class="panels">
-          <div class="left-panel" ref="leftPanel">
-            <v-card>
+          <div :class="['left-panel', {'d-flex': !statusGoogle}]" ref="leftPanel">
+            <v-progress-circular indeterminate v-if="!statusGoogle"/>
+            <v-card v-else>
               <v-tabs v-model="tabs" right icons-and-text>
                 <v-tab>Един.<v-icon>mdi-image-area</v-icon></v-tab>
                 <v-tab>Множ.<v-icon>mdi-view-comfy</v-icon></v-tab>
@@ -62,7 +63,10 @@
               
             </v-card>
           </div>
-          <right-panel />
+          <div class="right-panel" >
+            <v-progress-circular indeterminate v-if="!statusGoogle"/>
+            <right-panel v-else @get-shots="getShots"/>
+          </div>
         </div>
       </v-container>
     </v-main>
@@ -83,6 +87,7 @@
 <script>
 import ee from '@google/earthengine'
 import privateJson from '../private.json'
+import getShot from './module/getShot.js'
 
 export default {
   name: 'App',
@@ -111,7 +116,7 @@ export default {
     this.loadedStartApp = true;
     // this.widthCard = this.$refs.leftPanel.clientWidth / this.countInRow - 5 * this.countInRow
   },
-  computed:{ // TODO сделать проверку на числа при вводе долготы и широты, площади, масштаба
+  computed:{
     widthCard(){
       return this.$refs.leftPanel.clientWidth / (this.countInRow +   1)
     }
@@ -140,7 +145,43 @@ export default {
           this.loadedGoogle = true
         });
       });
+    },
+    getShots(parameters){
+      console.log("Получение шотов")
+      console.log(parameters)
+      getShot()
+      /*
+      {
+        //coordinates: coordinates,
+        //date: date,
+        //area: area,
+        //cloudPercent: cloudPercent,
+        TODO scale: scale,
+        //satellite: satellite,
+        TODO bands: bands,
+        //postFunction: postFunction,
+        TODO colorImage: colorImage,
+      })
+       */
+      // const square = new ee.Geometry.Point([parameters.coordinates.longitude, parameters.coordinates.latitude]).buffer(new ee.Number(parameters.area * 1e6).sqrt().divide(2)).bounds();
+      console.log(parameters.satellite)
+      const defaultShot = new ee.ImageCollection(parameters.satellite)
+      const filterShots = defaultShot.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+      console.log(filterShots)
+      // switch(parameters.postFunction){
+      //   case 'median': defaultShot = defaultShot.median();break;
+      //   case 'mean': defaultShot = defaultShot.mean();break;
+      //   case 'first': defaultShot = defaultShot.first();break;
+      // }
+      // const urlZip = defaultShot.getDownloadURL({
+      //   bands: parameters.bands,
+      //   region: square,
+      //   crs: 'EPSG:32653',
+      //   scale: parameters.scale
+      // });
+      // console.log(urlZip)
     }
+    
   }
 };
 </script>
@@ -178,12 +219,18 @@ export default {
   .container-all-height > .panels > .left-panel{
     flex:1;
     max-height:100%;
+    align-items: center;
+    justify-content: center;
+
   }
   .container-all-height > .panels > .right-panel{
     width:430px;
     flex-shrink: 0;
     max-height:100%;
     overflow: auto;
+    display:flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .container-all-height > .panels > div > .v-card{

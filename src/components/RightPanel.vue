@@ -1,5 +1,4 @@
 <template>
-	<div class="right-panel">
 		<v-card>
 				<v-card-text>
 					<v-img
@@ -28,7 +27,8 @@
 					</div>
 					<div class="d-flex input-width-33">
 							<v-text-field label="Площадь" v-model="area" disabled :rules="[rules.integer]" outlined dense />
-							<v-text-field class="ml-1" v-model="scale" disabled label="Масштаб" :rules="[rules.integer, rules.min10]"  outlined dense />
+              <v-text-field class="mx-1" label="Заоблочность, %" v-model="cloudPercent" disabled :rules="[rules.integer]" outlined dense />
+							<v-text-field v-model="scale" disabled label="Масштаб" :rules="[rules.integer, rules.min10]"  outlined dense />
 					</div>
 					<div class="d-flex">
 						<v-select class="mr-1" :items="satellites" v-model="satellite" outlined dense label="Спутник" disabled hide-details></v-select>
@@ -44,10 +44,9 @@
 						<v-radio label=".first()" value="first"/>
 					</v-radio-group>
 					<v-checkbox v-model="checkColorImage" label="Цветное изображение" />
-					<v-btn block color="primary" @click="getShots" :disabled="disabledButton">Получить</v-btn>
+					<v-btn block color="primary" @click="sendGetShots(coordinates, [dateStart,dateEnd], area, cloudPercent, scale, satellite, bands, postFunction, checkColorImage)" :disabled="disabledButton">Получить</v-btn>
 				</v-card-text>
 		</v-card>
-		</div>
 </template>
 
 <script>
@@ -78,9 +77,10 @@ export default {
 			}
 		],
 		satellite: 'COPERNICUS/S2_SR',
-		area: 1,
+    area: 1,
+    cloudPercent: 10,
 		scale: 10,
-		bands: ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12', 'TCI_R', 'TCI_G', 'TCI_B'],
+		bands: ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12', 'TCI_R', 'TCI_G', 'TCI_B'], // TODO Получение доступных спектров из родительского компонента
 		selectBands: ['B2', 'B3', 'B4', 'B5', 'TCI_R', 'TCI_G', 'TCI_B'],
 		checkColorImage: true,
 		postFunction: 'median',                                                                                                                                                                                        
@@ -97,12 +97,35 @@ export default {
 			if(this.coordinates.longitude && this.coordinates.latitude && this.dateStart && this.area && this.scale && this.selectBands.length) return false
 			else return true
 		}
-	},
-	methods:{
-		getShots(){
-
-		}
-	}
+  },
+  methods:{
+    /**
+     * Отправка данных для получения шота
+     * @param {Object} coordinates Координаты центра запрашиваемой области
+     * @param {Array} date Ограничение по времени
+     * @param {Number} area Площадь запрашиваемой секции
+     * @param {Number} cloudPercent Максимальный процент заоблочности
+     * @param {Number} scale Масштаб(качество) снимка
+     * @param {String} satellite Название спутника, с которого нужно запросить снимки
+     * @param {Array} bands Массив названий спектров, которые нужно получить
+     * @param {String} postFunction Название конечной функции, применяемой к выборке(first,median, mean)
+     * @param {Boolean} colorImage Чек, реализовывать ли цветное изображение
+     */
+    // eslint-disable-next-line no-unused-vars
+    sendGetShots(coordinates, date, area,cloudPercent,scale,satellite,bands, postFunction, colorImage){
+      this.$emit('get-shots', {
+        coordinates: coordinates,
+        date: date,
+        area: area,
+        cloudPercent: cloudPercent,
+        scale: scale,
+        satellite: satellite,
+        bands: bands,
+        postFunction: postFunction,
+        colorImage: colorImage,
+      })
+    }
+  }
 }
 </script>
 
