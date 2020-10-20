@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@google/earthengine": "^0.1.238",
+    "axios": "^0.20.0",
     "core-js": "^3.6.5",
     "express": "^4.17.1",
     "vue": "^2.6.11",
