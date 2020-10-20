@@ -86,7 +86,7 @@
 
 <script>
 import ee from '@google/earthengine'
-import privateJson from '../private.json'
+import privateJson from '../privateOAuth.json'
 import getShot from './module/getShot.js'
 
 export default {
@@ -128,7 +128,7 @@ export default {
     },
     authenticate(){
       this.loadedGoogle = false;
-      ee.data.authenticateViaOauth(privateJson.clientID, ()=>{
+      ee.data.authenticateViaOauth(privateJson.web.client_id, ()=>{
           this.statusGoogle = true
           this.initialize()
         }, (e) => {
