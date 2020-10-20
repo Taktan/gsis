@@ -85,9 +85,6 @@
 </template>
 
 <script>
-import ee from '@google/earthengine'
-import privateJson from '../private.json'
-import getShot from './module/getShot.js'
 
 export default {
   name: 'App',
@@ -95,7 +92,7 @@ export default {
     'right-panel': () => import('./components/RightPanel')
   },
   created(){
-    this.authenticate()
+
   },
   data: () => ({
     loadedStartApp: false,
@@ -104,8 +101,8 @@ export default {
       active: false,
       text: "Тестовый текст"
     },
-    statusGoogle: false,
-    loadedGoogle: false,
+    statusGoogle: true,
+    loadedGoogle: true,
 
     tabs: 1,
 
@@ -122,66 +119,9 @@ export default {
     }
   },
   methods:{
-    initialize(){
-      ee.initialize();
-      this.loadedGoogle = true;
-    },
-    authenticate(){
-      this.loadedGoogle = false;
-      ee.data.authenticateViaOauth(privateJson.clientID, ()=>{
-          this.statusGoogle = true
-          this.initialize()
-        }, (e) => {
-        console.error('Authentication error: ' + e);
-        this.statusGoogle = false;
-        this.loadedGoogle = true;
-      }, null, () => {
-        ee.data.authenticateViaPopup(()=>{
-          this.statusGoogle = true
-          this.initialize()
-        }, (e)=>{
-          console.log(e);
-          this.statusGoogle = false
-          this.loadedGoogle = true
-        });
-      });
-    },
     getShots(parameters){
-      console.log("Получение шотов")
-      console.log(parameters)
-      getShot()
-      /*
-      {
-        //coordinates: coordinates,
-        //date: date,
-        //area: area,
-        //cloudPercent: cloudPercent,
-        TODO scale: scale,
-        //satellite: satellite,
-        TODO bands: bands,
-        //postFunction: postFunction,
-        TODO colorImage: colorImage,
-      })
-       */
-      // const square = new ee.Geometry.Point([parameters.coordinates.longitude, parameters.coordinates.latitude]).buffer(new ee.Number(parameters.area * 1e6).sqrt().divide(2)).bounds();
-      console.log(parameters.satellite)
-      const defaultShot = new ee.ImageCollection(parameters.satellite)
-      const filterShots = defaultShot.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
-      console.log(filterShots)
-      // switch(parameters.postFunction){
-      //   case 'median': defaultShot = defaultShot.median();break;
-      //   case 'mean': defaultShot = defaultShot.mean();break;
-      //   case 'first': defaultShot = defaultShot.first();break;
-      // }
-      // const urlZip = defaultShot.getDownloadURL({
-      //   bands: parameters.bands,
-      //   region: square,
-      //   crs: 'EPSG:32653',
-      //   scale: parameters.scale
-      // });
-      // console.log(urlZip)
+      console.log(JSON.stringify(parameters))
     }
-    
   }
 };
 </script>
