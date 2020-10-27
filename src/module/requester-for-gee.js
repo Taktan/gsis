@@ -14,7 +14,6 @@ var ee = require('@google/earthengine')
  * @return {String} ссылка на архив из шотов
  */
 module.exports.manyBands = (parameters) => {
-   console.log("Отправка")
    const square = new ee.Geometry(ee.Geometry.Point([parameters.coordinates.longitude, parameters.coordinates.latitude])).buffer(new ee.Number(parameters.area * 1e6).sqrt().divide(2)).bounds();
    let defaultShot = new ee.ImageCollection(parameters.satellite)
    .filterBounds(square)
@@ -26,7 +25,6 @@ module.exports.manyBands = (parameters) => {
     case 'mean': defaultShot = defaultShot.mean();break; // ! То же самое
     case 'first': defaultShot = defaultShot.first();break;
   }
-  console.log(defaultShot.getInfo())
   const urlZip = defaultShot.getDownloadURL({
     name: new Date().toISOString(),
     bands: parameters.bands,

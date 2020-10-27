@@ -44,7 +44,7 @@
 						<v-radio label=".first()" value="first"/>
 					</v-radio-group>
 					<v-checkbox v-model="checkColorImage" label="Цветное изображение" />
-					<v-btn block color="primary" @click="sendGetShots(coordinates, [dateStart,dateEnd], area, cloudPercent, scale, satellite, bands, postFunction, checkColorImage)" :disabled="disabledButton">Получить</v-btn>
+					<v-btn block color="primary" @click="sendGetShots(coordinates, [dateStart,dateEnd], area, cloudPercent, scale, satellite, selectBands, postFunction, checkColorImage)" :disabled="disabledButton">Получить</v-btn>
 				</v-card-text>
 		</v-card>
 </template>

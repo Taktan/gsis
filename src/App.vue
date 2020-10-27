@@ -2,11 +2,6 @@
   <v-app>
     <v-app-bar app color="primary" dark>
       <div style="text-align:center;width:100%;line-height: 0px;" class="title">Получить квадратное изображение со спутника <span class="caption"><br />с помощью Google Earth Engine</span></div>
-      <v-progress-circular indeterminate v-if="!loadedGoogle"/>
-      <template v-else>
-        <v-btn v-if="!statusGoogle" icon color="red" @click="authenticate()"><v-icon>mdi-google</v-icon></v-btn>
-        <v-icon v-else color="green">mdi-google</v-icon>
-      </template>
       
       
     </v-app-bar>
@@ -14,8 +9,8 @@
     <v-main>
       <v-container class="container-all-height" fluid style="height:'100%'">
         <div class="panels">
-          <div :class="['left-panel', {'d-flex': !statusGoogle}]" ref="leftPanel">
-            <v-progress-circular indeterminate v-if="!statusGoogle"/>
+          <div :class="['left-panel', {'d-flex': !statusServer}]" ref="leftPanel">
+            <v-progress-circular indeterminate v-if="!statusServer"/>
             <v-card v-else>
               <v-tabs v-model="tabs" right icons-and-text>
                 <v-tab>Един.<v-icon>mdi-image-area</v-icon></v-tab>
@@ -64,7 +59,7 @@
             </v-card>
           </div>
           <div class="right-panel" >
-            <v-progress-circular indeterminate v-if="!statusGoogle"/>
+            <v-progress-circular indeterminate v-if="!statusServer"/>
             <right-panel v-else @get-shots="getShots"/>
           </div>
         </div>
@@ -85,6 +80,10 @@
 </template>
 
 <script>
+import axios from 'axios';
+const instanceRequest = axios.create({
+  baseURL: 'http://localhost:3000/api'
+})
 
 export default {
   name: 'App',
@@ -92,22 +91,26 @@ export default {
     'right-panel': () => import('./components/RightPanel')
   },
   created(){
-
+    instanceRequest.get('/check-status-gee').then(res=>{
+      if(res.status == 200 && res.data == "Ok"){
+        this.statusServer = true;
+      }else{
+        this.snackbar.text = `Ошибка ${res.status}: ${res.data}`
+      }
+    })
   },
   data: () => ({
     loadedStartApp: false,
+    statusServer: false,
     dialogLoaded: false,
     snackbar:{
       active: false,
       text: "Тестовый текст"
     },
-    statusGoogle: true,
-    loadedGoogle: true,
 
     tabs: 1,
 
     countInRow: 5,
-    // widthCard: 300,
   }),
   mounted(){
     this.loadedStartApp = true;
@@ -120,7 +123,18 @@ export default {
   },
   methods:{
     getShots(parameters){
-      console.log(JSON.stringify(parameters))
+      instanceRequest.post('/get-zip-for-shot', parameters, {responseType: 'blob'}).then(res=>{
+        console.log(res);
+        if(res.status == 200){
+          let url = URL.createObjectURL(res.data);
+          console.log(url);
+          window.open(url)
+        }else{
+          console.log(res)
+        }
+      }).catch(e=>{
+        console.log(e)
+      })
     }
   }
 };
