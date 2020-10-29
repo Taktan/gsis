@@ -21,17 +21,19 @@ module.exports.manyBands = (parameters) => {
    .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', parameters.cloudPercent))
    .sort('CLOUDY_PIXEL_PERCENTAGE',false)
    switch(parameters.postFunction){
-    case 'median': defaultShot = defaultShot.median();break; // ! Отправляет непросматриваемые "обычным способом" картинки
-    case 'mean': defaultShot = defaultShot.mean();break; // ! То же самое
+    case 'median': defaultShot = defaultShot.median();break; 
+    case 'mean': defaultShot = defaultShot.mean();break; 
     case 'first': defaultShot = defaultShot.first();break;
   }
+  parameters.bands.forEach(band => { // нужно для "нормализации" картинки
+    defaultShot = defaultShot.addBands(defaultShot.visualize({bands: [band]}).rename([band]), null, true)
+  })
   const urlZip = defaultShot.getDownloadURL({
     name: new Date().toISOString(),
     bands: parameters.bands,
     crs: 'EPSG:32653',
     region: square,
     scale: parameters.scale,
-    filePerBand: false
   });
   return urlZip;
 }
