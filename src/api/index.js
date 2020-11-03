@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors')
 const axios = require('axios');
 const JSzip = require('jszip');
+
 app.use(express.json())
 app.use(cors({
     origin: ['http://localhost:8080','http://example.com']
@@ -38,10 +39,20 @@ app.get('/api/check-status-gee', (req,res)=>{
         res.status(503).send("Не готов GEE")
     }
 })
+
 const gee = require('../module/requester-for-gee')
 /**
- * Получение архива с шотами
- * TODO Дописать документацию к запросу
+ * Запрос получения архива с изображениями
+ * @param {Object} req.body параметры для получения шота
+ * @param {Object} req.body.coordinates координаты центра запроса
+ * @param {Array} req.body.date временные ограничения запросов
+ * @param {Number} req.body.area площадь запроса
+ * @param {Number} req.body.cloudPercent процент заоблочности
+ * @param {Number} req.body.scale масштаб картинки
+ * @param {String} req.body.satellite название спутника
+ * @param {Array} req.body.bands массив названий нужных спектров
+ * @param {String} req.body.postFunction название последней функции
+ * @return {Buffer} архив с изображениями
  */
 app.post('/api/get-zip-for-shot', (req,res)=>{ //TODO Сделать нормальное название запроса и совершить проверки
     try{
@@ -52,7 +63,20 @@ app.post('/api/get-zip-for-shot', (req,res)=>{ //TODO Сделать норма�
             axios.get(urlWithBands, {responseType: 'arraybuffer'}).then((responseZIP)=>{
                 if(responseZIP.status == 200){
                     if(req.body.colorImage){
-                        //TODO Получение цветного изображения
+                        if(req.body.satellite == "COPERNICUS/S2_SR"){
+                            JSzip.loadAsync(responseZIP.data).then(async (zip)=>{
+                                const red = await zip.file('thumbnail.TCI_R.tif').async("nodebuffer");
+                                const green = await zip.file('thumbnail.TCI_G.tif').async("nodebuffer")
+                                const blue = await zip.file('thumbnail.TCI_B.tif').async("nodebuffer")
+                                require('../module/create-color-image.js')(red,green,blue,'tiff').then(async colorFile=>{
+                                    await zip.file('thumbnail.color.tif', colorFile);
+                                    zip.generateAsync({type: 'nodebuffer'}).then(result => {
+                                        res.send(result)
+                                    })
+                                })
+                            })
+                        }
+                        //TODO Проработать получение цветных изображений у других спутников
                     }
                     else{
                         res.send(responseZIP.data)

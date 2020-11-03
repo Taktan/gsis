@@ -117,16 +117,24 @@ export default {
     // this.widthCard = this.$refs.leftPanel.clientWidth / this.countInRow - 5 * this.countInRow
   },
   computed:{
-    widthCard(){
+    widthCard(){ // TODO Реализовать просчет при изменении размера экрана
       return this.$refs.leftPanel.clientWidth / (this.countInRow +   1)
     }
   },
   methods:{
     getShots(parameters){
+      if(parameters.colorImage){
+        if(parameters.satellite == "COPERNICUS/S2_SR"){
+          if(parameters.bands.indexOf("TCI_R") == -1) parameters.bands.push("TCI_R");
+          if(parameters.bands.indexOf("TCI_G") == -1) parameters.bands.push("TCI_G");
+          if(parameters.bands.indexOf("TCI_B") == -1) parameters.bands.push("TCI_B");
+        }
+      }
+      console.log(parameters)
       instanceRequest.post('/get-zip-for-shot', parameters, {responseType: 'blob'}).then(res=>{
-        console.log(res);
         if(res.status == 200){
-          let url = URL.createObjectURL(res.data);
+          let blob = new Blob([res.data], {type:"application/zip"})
+          let url = URL.createObjectURL(blob);
           console.log(url);
           window.open(url)
         }else{

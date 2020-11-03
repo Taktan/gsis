@@ -29,7 +29,7 @@ module.exports.manyBands = (parameters) => {
     defaultShot = defaultShot.addBands(defaultShot.visualize({bands: [band]}).rename([band]), null, true)
   })
   const urlZip = defaultShot.getDownloadURL({
-    name: new Date().toISOString(),
+    name: "thumbnail",
     bands: parameters.bands,
     crs: 'EPSG:32653',
     region: square,

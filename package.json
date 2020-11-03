@@ -5,7 +5,9 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "node ./src/api/index.test",
+    "devServer": "nodemon ./src/api/index"
   },
   "dependencies": {
     "@google/earthengine": "^0.1.238",
@@ -13,7 +15,9 @@
     "core-js": "^3.6.5",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "fs": "0.0.1-security",
     "jszip": "^3.5.0",
+    "sharp": "^0.26.2",
     "vue": "^2.6.11",
     "vue-zoomer": "^0.3.6",
     "vuetify": "^2.2.11"
