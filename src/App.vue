@@ -2,10 +2,7 @@
   <v-app>
     <v-app-bar app color="primary" dark>
       <div style="text-align:center;width:100%;line-height: 0px;" class="title">Получить квадратное изображение со спутника <span class="caption"><br />с помощью Google Earth Engine</span></div>
-      
-      
     </v-app-bar>
-
     <v-main>
       <v-container class="container-all-height" fluid style="height:'100%'">
         <div class="panels">
@@ -60,17 +57,17 @@
           </div>
           <div class="right-panel" >
             <v-progress-circular indeterminate v-if="!statusServer"/>
-            <right-panel v-else @get-shots="getShots"/>
+            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url"/>
           </div>
         </div>
       </v-container>
     </v-main>
-    <v-dialog v-model="dialogLoaded" max-width="300" persistent>
+    <v-dialog v-model="dialogLoaded.active" max-width="300" persistent>
       <v-card>
         <div class="card-dialog-loaded-content">
           <v-card-text>
             <v-progress-circular indeterminate color="primary" :size="75" :width="10"/>
-            <p class="mt-2 body-1">Текст про загрузку</p>
+            <p class="mt-2 body-1">{{dialogLoaded.text}}</p>
           </v-card-text>
         </div>
       </v-card>
@@ -102,7 +99,10 @@ export default {
   data: () => ({
     loadedStartApp: false,
     statusServer: false,
-    dialogLoaded: false,
+    dialogLoaded: {
+      active: false,
+      text: "Текст про загрузку"
+    },
     snackbar:{
       active: false,
       text: "Тестовый текст"
@@ -111,6 +111,11 @@ export default {
     tabs: 1,
 
     countInRow: 5,
+
+    archive:{
+      file: null,
+      url: null
+    }
   }),
   mounted(){
     this.loadedStartApp = true;
@@ -131,17 +136,26 @@ export default {
         }
       }
       console.log(parameters)
+      
+      this.dialogLoaded.text = "Идет запрос на сервер GEE"
+      this.dialogLoaded.active = true
+      
       instanceRequest.post('/get-zip-for-shot', parameters, {responseType: 'blob'}).then(res=>{
         if(res.status == 200){
-          let blob = new Blob([res.data], {type:"application/zip"})
-          let url = URL.createObjectURL(blob);
-          console.log(url);
-          window.open(url)
+          this.archive.file = new Blob([res.data], {type:"application/zip"})
+          this.archive.url = URL.createObjectURL(this.archive.file);
+          this.dialogLoaded.active = false
         }else{
           console.log(res)
+          this.dialogLoaded.active = false
+          this.snackbar.text = res.data
+          this.snackbar.active = true
         }
       }).catch(e=>{
         console.log(e)
+        this.dialogLoaded.active = false
+        this.snackbar.text = e
+        this.snackbar.active = true
       })
     }
   }
