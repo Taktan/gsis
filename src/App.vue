@@ -8,6 +8,7 @@
         <div class="panels">
           <div :class="['left-panel', {'d-flex': !statusServer}]" ref="leftPanel">
             <v-progress-circular indeterminate v-if="!statusServer"/>
+            <empty-state v-else-if="shots == null"/>
             <v-card v-else>
               <v-tabs v-model="tabs" right icons-and-text>
                 <v-tab>Един.<v-icon>mdi-image-area</v-icon></v-tab>
@@ -30,25 +31,7 @@
                 </v-tab-item>
                 <v-tab-item>
                   <v-skeleton-loader type="image" height="100%" v-if="!loadedStartApp"/>
-                  <template v-else>
-                    <div class="cards-images">
-                      <v-card v-for="n in 9" :key="n" :width="widthCard">
-                        <v-img src="/out.jpg">
-                          <span class="text-in-image">Тест спектра</span>
-                        </v-img>
-                      </v-card>
-                    </div>
-                    <div class="absolute-select elevation-5 ma-1 pa-1" >
-                      <v-slider
-                        label="Размер"
-                        max="10"
-                        min="2"
-                        hide-details
-                        v-model="countInRow"
-                        thumb-label="always"
-                      />
-                    </div>
-                  </template>
+                  <multiple-view v-else :shots.sync="shots" />
                 </v-tab-item>
                 <v-tab-item>Три</v-tab-item>
               </v-tabs-items>
@@ -57,7 +40,7 @@
           </div>
           <div class="right-panel" >
             <v-progress-circular indeterminate v-if="!statusServer"/>
-            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url"/>
+            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot"/>
           </div>
         </div>
       </v-container>
@@ -78,6 +61,8 @@
 
 <script>
 import axios from 'axios';
+import JSZip from 'jszip';
+import Tiff from 'tiff.js'
 const instanceRequest = axios.create({
   baseURL: 'http://localhost:3000/api'
 })
@@ -85,7 +70,8 @@ const instanceRequest = axios.create({
 export default {
   name: 'App',
   components:{
-    'right-panel': () => import('./components/RightPanel')
+    'right-panel': () => import('./components/RightPanel'),
+    'multiple-view': () => import('./components/MultipleView')
   },
   created(){
     instanceRequest.get('/check-status-gee').then(res=>{
@@ -110,26 +96,21 @@ export default {
 
     tabs: 1,
 
-    countInRow: 5,
-
     archive:{
       file: null,
       url: null
-    }
+    },
+    rightShot: null,
+    shots:null 
   }),
   mounted(){
     this.loadedStartApp = true;
     // this.widthCard = this.$refs.leftPanel.clientWidth / this.countInRow - 5 * this.countInRow
   },
-  computed:{
-    widthCard(){ // TODO Реализовать просчет при изменении размера экрана
-      return this.$refs.leftPanel.clientWidth / (this.countInRow +   1)
-    }
-  },
   methods:{
     getShots(parameters){
       if(parameters.colorImage){
-        if(parameters.satellite == "COPERNICUS/S2_SR"){
+        if(parameters.satellite == "COPERNICUS/S2_SR"){ // TODO Релизовать другие спутники
           if(parameters.bands.indexOf("TCI_R") == -1) parameters.bands.push("TCI_R");
           if(parameters.bands.indexOf("TCI_G") == -1) parameters.bands.push("TCI_G");
           if(parameters.bands.indexOf("TCI_B") == -1) parameters.bands.push("TCI_B");
@@ -144,7 +125,31 @@ export default {
         if(res.status == 200){
           this.archive.file = new Blob([res.data], {type:"application/zip"})
           this.archive.url = URL.createObjectURL(this.archive.file);
-          this.dialogLoaded.active = false
+          JSZip().loadAsync(res.data, {type:"arraybuffer"}).then(zip=>{
+            this.dialogLoaded.text = "Распаковка архива"
+            let completeShots = {}
+            let indexElement = 0;
+            let countFiles = Object.keys(zip.files).length;
+            zip.forEach(async (name, file)=>{
+              const band = name.substring(10,name.indexOf(".tif")).toUpperCase();
+              let buffer = await file.async("uint8array");
+              let tiff = new Tiff({buffer: buffer}).toCanvas()
+              completeShots[band] = tiff.toDataURL("image/jpeg")
+              if(parameters.colorImage){ // костыльное сообщество принимает тебя
+                if(band == "COLOR"){
+                  this.$set(this,"rightShot", tiff.toDataURL("image/jpeg"))
+                }
+              }else{
+                if(indexElement == 0){
+                  this.$set(this,"rightShot", tiff.toDataURL("image/jpeg"))
+                }
+              }
+              if(++indexElement == countFiles){ // костыли костылики
+                this.$set(this, "shots", completeShots)
+                this.dialogLoaded.active = false
+              }
+            })
+          })
         }else{
           console.log(res)
           this.dialogLoaded.active = false
@@ -250,6 +255,9 @@ export default {
   }
   .cards-images > .v-card{
     margin:5px;
+  }
+  .cards-images img{
+    width:100%;
   }
   .cards-images .text-in-image{
     position: absolute;

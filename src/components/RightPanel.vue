@@ -1,7 +1,8 @@
 <template>
   <v-card>
     <v-card-text>
-      <v-img aspect-ratio="1" lazy-src="/out.jpg" src="/out.jpg" class="mb-4" />
+      <empty-state v-if="!shot"/>
+      <v-img v-else aspect-ratio="1" :src="shot" class="mb-4" />
       <div class="d-flex">
         <v-text-field v-model="coordinates.longitude" :rules="[rules.coordinates]" label="Долгота" class="mr-1" outlined dense />
         <v-text-field v-model="coordinates.latitude" :rules="[rules.coordinates]" label="Широта" outlined dense />
@@ -65,7 +66,10 @@ export default {
 		archiveUrl: {
 			type: String,
 			default: null
-		}
+    },
+    shot: {
+      default: null
+    }
 	},
   data: () => ({
     coordinates: {

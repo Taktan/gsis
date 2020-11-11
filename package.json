@@ -18,6 +18,7 @@
     "fs": "0.0.1-security",
     "jszip": "^3.5.0",
     "sharp": "^0.26.2",
+    "tiff.js": "^1.0.0",
     "vue": "^2.6.11",
     "vue-zoomer": "^0.3.6",
     "vuetify": "^2.2.11"
