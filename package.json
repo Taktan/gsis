@@ -1,13 +1,13 @@
 {
   "name": "gsis",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
     "test": "node ./src/api/index.test",
-    "devServer": "nodemon ./src/api/index"
+    "devServer": "nodemon ./src/api/index",
+    "start": "concurrently -k \"node ./src/api/index\" \"vue-cli-service serve\""
   },
   "dependencies": {
     "@google/earthengine": "^0.1.238",

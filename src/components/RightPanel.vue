@@ -4,8 +4,8 @@
       <empty-state v-if="!shot"/>
       <v-img v-else aspect-ratio="1" :src="shot" class="mb-4" />
       <div class="d-flex">
-        <v-text-field v-model="coordinates.longitude" :rules="[rules.coordinates]" label="Долгота" class="mr-1" outlined dense />
-        <v-text-field v-model="coordinates.latitude" :rules="[rules.coordinates]" label="Широта" outlined dense />
+        <v-text-field v-model.number="coordinates.longitude" :rules="[rules.coordinates]" label="Долгота" class="mr-1" outlined dense />
+        <v-text-field v-model.number="coordinates.latitude" :rules="[rules.coordinates]" label="Широта" outlined dense />
       </div>
       <div class="d-flex">
         <v-menu v-model="menuDateStart" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y min-width="290px">
@@ -24,7 +24,7 @@
       <div class="d-flex input-width-33">
         <v-text-field label="Площадь" v-model="area" disabled :rules="[rules.integer]" outlined dense />
         <v-text-field class="mx-1" label="Заоблочность, %" v-model="cloudPercent" disabled :rules="[rules.integer]" outlined dense />
-        <v-text-field v-model="scale" disabled label="Масштаб" :rules="[rules.integer, rules.min10]" outlined dense />
+        <v-text-field v-model.number="scale" label="Масштаб" :rules="[rules.integer]" outlined dense />
       </div>
       <div class="d-flex">
         <v-select class="mr-1" :items="satellites" v-model="satellite" outlined dense label="Спутник" disabled hide-details></v-select>
@@ -99,7 +99,7 @@ export default {
     satellite: "COPERNICUS/S2_SR",
     area: 1,
     cloudPercent: 10,
-    scale: 10,
+    scale: 1,
     bands: [
       "B1",
       "B2",
