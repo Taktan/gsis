@@ -26,7 +26,8 @@ module.exports.manyBands = (parameters) => {
     case 'first': defaultShot = defaultShot.first();break;
   }
   parameters.bands.forEach(band => { // нужно для "нормализации" картинки
-    defaultShot = defaultShot.addBands(defaultShot.visualize({bands: [band]}).rename([band]), null, true)
+    if(band != "TCI_R" && band != "TCI_G" && band != "TCI_B") defaultShot = defaultShot.addBands(defaultShot.visualize({bands: [band], min: 500, max: 1500}).rename([band]), null, true)
+    else defaultShot = defaultShot.addBands(defaultShot.visualize({bands: [band]}).rename([band]), null, true)
   })
   const urlZip = defaultShot.getDownloadURL({
     name: "thumbnail",

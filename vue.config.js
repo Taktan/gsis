@@ -2,7 +2,7 @@ module.exports = {
   "transpileDependencies": [
     "vuetify"
   ],
-  devServer: {
+  /* devServer: {
     "public": "example.com",
-  }
+  } */
 }
