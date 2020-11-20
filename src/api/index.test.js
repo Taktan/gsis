@@ -17,5 +17,8 @@ const startTest = (answer) => {
         case 2:
             require("./tests/test2")
             break;
+        case 3:
+            require("./tests/test3")
+            break;
     }
 }
