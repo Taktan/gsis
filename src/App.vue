@@ -30,17 +30,9 @@
           </div>
           <div class="right-panel" >
             <v-progress-circular indeterminate v-if="!statusServer"/>
-            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot"/>
+            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot" @load-test="loadTestData()"/>
           </div>
         </div>
-        <v-btn
-          @click="loadTestData()"
-          color="pink"
-          dark
-          absolute
-          bottom
-          right
-        >Тестовые данные</v-btn>
       </v-container>
     </v-main>
     <v-dialog v-model="dialogLoaded.active" max-width="300" persistent>
@@ -93,7 +85,6 @@ export default {
       active: false,
       text: "Тестовый текст"
     },
-
     tabs: 1,
 
     archive:{
@@ -101,13 +92,13 @@ export default {
       url: null
     },
     rightShot: null,
-    shots:null 
+    shots:null,
   }),
   mounted(){
     this.loadedStartApp = true;
     // this.widthCard = this.$refs.leftPanel.clientWidth / this.countInRow - 5 * this.countInRow
   },
-  methods:{
+  methods:{ 
     getShots(parameters){
       if(parameters.colorImage){
         if(parameters.satellite == "COPERNICUS/S2_SR"){ // TODO Релизовать другие спутники
@@ -164,6 +155,8 @@ export default {
       })
     },
     loadTestData(){
+      this.dialogLoaded.text = "Тестовый запрос"
+      this.dialogLoaded.active = true
       instanceRequest.get('/test-data',{responseType: 'blob'}).then(res=>{
         if(res.status == 200){
           this.archive.file = new Blob([res.data], {type:"application/zip"})
@@ -235,7 +228,7 @@ export default {
 
   }
   .container-all-height > .panels > .right-panel{
-    width:430px;
+    width:380px;
     flex-shrink: 0;
     max-height:100%;
     overflow: auto;
@@ -265,6 +258,8 @@ export default {
   .parent-zoomer-image > .zoomer-image-container img{
     flex: 1 1;
     object-fit: contain;
+    max-width:100%;
+    max-height:100%;
   }
   .absolute-select{
     position: absolute;

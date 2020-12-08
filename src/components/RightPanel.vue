@@ -57,6 +57,19 @@
 				<v-btn v-if="archiveUrl" :href="archiveUrl" class="ml-2 flex-grow-0" dark color="primary"><v-icon dark> mdi-package-down </v-icon></v-btn>
 			</div>
     </v-card-text>
+    <v-speed-dial absolute right bottom transition="slide-x-reverse-transition" direction="left">
+      <template v-slot:activator>
+        <v-btn v-model="statusButtonsSaveData" color="blue darken-2" dark fab title="Управление данными">
+          <v-icon v-if="statusButtonsSaveData">mdi-close</v-icon>
+          <v-icon v-else>mdi-database-cog-outline</v-icon>
+        </v-btn>
+      </template>
+      <v-btn fab dark small color="green" @click="saveToFile()" title="Сохранить файлом"><v-icon>mdi-file-download-outline</v-icon></v-btn>
+      <v-btn fab dark small color="green" title="Загрузить из файла"><v-icon>mdi-file-upload-outline</v-icon></v-btn>
+      <v-btn fab dark small color="green" @click="saveToLocalStorage()" title="Сохранить в localStorage"><v-icon>mdi-cloud-download-outline</v-icon></v-btn>
+      <v-btn fab dark small color="green" @click="loadFromLocalStorage()" title="Загрузить из localStorage"><v-icon>mdi-cloud-upload-outline</v-icon></v-btn>
+      <v-btn fab dark small color="pink" @click="$emit('load-test')"><v-icon>mdi-cloud-circle</v-icon></v-btn>
+    </v-speed-dial>
   </v-card>
 </template>
 
@@ -121,6 +134,7 @@ export default {
     checkColorImage: true,
     postFunction: "median",
 
+    statusButtonsSaveData: false,
     rules: {
       coordinates: (value) =>
         (Number.isFinite(+value) && value.length != 0) || "Невалидное значение",
@@ -128,6 +142,7 @@ export default {
       min10: (value) => value > 10 || "Нужно больше 10",
     },
   }),
+  //TODO при загрузке получить значение localStrage
   computed: {
     disabledButton() {
       if (
@@ -141,6 +156,19 @@ export default {
         return false;
       else return true;
     },
+    formattedData(){
+      return{
+        coordinates: this.coordinates,
+        date: [this.dateStart,this.dateEnd],
+        area: this.area,
+        cloudPercent: this.cloudPercent,
+        scale: this.scale,
+        satellite: this.satellite,
+        bands: this.selectBands,
+        postFunction: this.postFunction,
+        colorImage: this.colorImage,
+      }
+    }
   },
   methods: {
     /**
@@ -179,6 +207,32 @@ export default {
         colorImage: colorImage,
       });
     },
+    saveToLocalStorage(){
+      localStorage.setItem("data-right-panel", JSON.stringify(this.formattedData))
+    },
+    loadFromLocalStorage(){
+      if(localStorage.length){
+        let dataFromStore = JSON.parse(localStorage.getItem("data-right-panel"));
+        this.coordinates = dataFromStore.coordinates;
+        this.dateStart = dataFromStore.date[0];
+        this.dateEnd = dataFromStore.date[1];
+        this.area = dataFromStore.area;
+        this.cloudPercent = dataFromStore.cloudPercent;
+        this.scale = dataFromStore.scale;
+        this.satellite = dataFromStore.satellite;
+        this.selectBands = dataFromStore.bands;
+        this.postFunction = dataFromStore.postFunction;
+        this.colorImage = dataFromStore.colorImage;
+      }
+    },
+    saveToFile(){
+      let fileToSave = new Blob([JSON.stringify(this.formattedData)], {
+        type: 'application/json',
+        name: "data.json"
+      });
+      window.open(URL.createObjectURL(fileToSave))
+    }
+    
   },
 };
 </script>
