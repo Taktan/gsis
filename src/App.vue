@@ -259,9 +259,12 @@ export default {
   .parent-zoomer-image > .zoomer-image-container{
     height:100%;
   }
+  .parent-zoomer-image > .zoomer-image-container .zoomer{
+    display:flex;
+  }
   .parent-zoomer-image > .zoomer-image-container img{
-    max-width:100%;
-    max-height:100%;
+    flex: 1 1;
+    object-fit: contain;
   }
   .absolute-select{
     position: absolute;
