@@ -54,7 +54,7 @@ const gee = require('../module/requester-for-gee')
  * @param {String} req.body.postFunction название последней функции
  * @return {Buffer} архив с изображениями
  */
-app.post('/api/get-zip-for-shot', (req,res)=>{ //TODO Сделать нормальное название запроса и совершить проверки
+app.post('/api/get-zip-for-shot', (req,res)=>{
     try{
         if(req.body && !Object.keys(req.body).length){
             res.status(400).send('Отсутствуют параметры')
@@ -91,3 +91,9 @@ app.post('/api/get-zip-for-shot', (req,res)=>{ //TODO Сделать норма�
         res.status(500).send(`Error: ${e}`)
     }
 })
+app.get('/api/test-data', async (req,res)=>{
+    require('fs').readFile(__dirname + "/tests/files/test.zip", (err,data)=>{
+        res.send(data)
+    })
+    
+});

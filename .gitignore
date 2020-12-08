@@ -25,3 +25,4 @@ pnpm-debug.log*
 private.json
 privateOAuth.json
 src/api/tests/files/allShotsYears
+src/api/tests/files/backupStruct
