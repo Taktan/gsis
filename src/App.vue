@@ -17,17 +17,7 @@
               </v-tabs>
               <v-tabs-items v-model="tabs">
                 <v-tab-item>
-                  <div class="parent-zoomer-image">
-                    <v-zoomer class="zoomer-image-container">
-                      <img
-                        src="/out.jpg"
-                      >
-                    </v-zoomer>
-                  </div>
-                  <div class="absolute-select elevation-5 ma-1 pa-1">
-                    <v-select hide-details :items="['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','Q10','Q20','Q30','TCI-R','TCI-G','TCI-B','color']" 
-                      label="Спектр" dense outlined></v-select>
-                  </div>
+                  <zoom-view :shots.sync="shots"/>
                 </v-tab-item>
                 <v-tab-item>
                   <v-skeleton-loader type="image" height="100%" v-if="!loadedStartApp"/>
@@ -43,6 +33,14 @@
             <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot"/>
           </div>
         </div>
+        <v-btn
+          @click="loadTestData()"
+          color="pink"
+          dark
+          absolute
+          bottom
+          right
+        >Тестовые данные</v-btn>
       </v-container>
     </v-main>
     <v-dialog v-model="dialogLoaded.active" max-width="300" persistent>
@@ -56,6 +54,7 @@
       </v-card>
     </v-dialog>
     <v-snackbar v-model="snackbar.active">{{ snackbar.text }}</v-snackbar>
+    
   </v-app>
 </template>
 
@@ -71,6 +70,7 @@ export default {
   name: 'App',
   components:{
     'right-panel': () => import('./components/RightPanel'),
+    'zoom-view':()=>import('./components/ZoomView'),
     'multiple-view': () => import('./components/MultipleView')
   },
   created(){
@@ -161,6 +161,36 @@ export default {
         this.dialogLoaded.active = false
         this.snackbar.text = e
         this.snackbar.active = true
+      })
+    },
+    loadTestData(){
+      instanceRequest.get('/test-data',{responseType: 'blob'}).then(res=>{
+        if(res.status == 200){
+          this.archive.file = new Blob([res.data], {type:"application/zip"})
+          this.archive.url = URL.createObjectURL(this.archive.file);
+          JSZip().loadAsync(res.data).then(zip=>{
+            this.dialogLoaded.text = "Распаковка архива"
+            let completeShots = {}
+            let indexElement = 0;
+            let countFiles = Object.keys(zip.files).length;
+            zip.forEach(async (name, file)=>{
+              const band = name.substring(10,name.indexOf(".tif")).toUpperCase();
+              let buffer = await file.async("uint8array");
+              let tiff = new Tiff({buffer: buffer}).toCanvas()
+              completeShots[band] = tiff.toDataURL("image/jpeg")
+              this.$set(this,"rightShot", tiff.toDataURL("image/jpeg"))
+              if(++indexElement == countFiles){ // костыли костылики
+                this.$set(this, "shots", completeShots)
+                this.dialogLoaded.active = false
+              }
+            })
+          })
+        }else{
+          console.log(res)
+          this.dialogLoaded.active = false
+          this.snackbar.text = res.data
+          this.snackbar.active = true
+        }
       })
     }
   }
