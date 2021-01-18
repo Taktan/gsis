@@ -156,12 +156,36 @@ export default {
       })
     },
     loadTestData(){
-      this.snackbar.active = true;
-      this.snackbar.text = "Тест текст";
-      this.snackbar.error = true
-      setTimeout(() => {
-        this.snackbar.error = false
-      }, 5000);
+      this.dialogLoaded.text = "Тестовый запрос"
+      this.dialogLoaded.active = true
+      instanceRequest.get('/test-data',{responseType: 'blob'}).then(res=>{
+        if(res.status == 200){
+          this.archive.file = new Blob([res.data], {type:"application/zip"})
+          this.archive.url = URL.createObjectURL(this.archive.file);
+          JSZip().loadAsync(res.data).then(zip=>{
+            this.dialogLoaded.text = "Распаковка архива"
+            let completeShots = {}
+            let indexElement = 0;
+            let countFiles = Object.keys(zip.files).length;
+            zip.forEach(async (name, file)=>{
+              const band = name.substring(10,name.indexOf(".tif")).toUpperCase();
+              let buffer = await file.async("uint8array");
+              let tiff = new Tiff({buffer: buffer}).toCanvas()
+              completeShots[band] = tiff.toDataURL("image/jpeg")
+              this.$set(this,"rightShot", tiff.toDataURL("image/jpeg"))
+              if(++indexElement == countFiles){ // костыли костылики
+                this.$set(this, "shots", completeShots)
+                this.dialogLoaded.active = false
+              }
+            })
+          })
+        }else{
+          console.log(res)
+          this.dialogLoaded.active = false
+          this.snackbar.text = res.data
+          this.snackbar.active = true
+        }
+      })
     },
     showSnackbar(value){
       this.snackbar.active = true;
