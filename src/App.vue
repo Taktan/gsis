@@ -13,7 +13,7 @@
               <v-tabs v-model="tabs" right icons-and-text>
                 <v-tab>Един.<v-icon>mdi-image-area</v-icon></v-tab>
                 <v-tab>Множ.<v-icon>mdi-view-comfy</v-icon></v-tab>
-                <v-tab disabled>Карта<v-icon>mdi-map-outline</v-icon></v-tab>
+                <v-tab>Карта<v-icon>mdi-map-outline</v-icon></v-tab>
               </v-tabs>
               <v-tabs-items v-model="tabs">
                 <v-tab-item>
@@ -23,7 +23,9 @@
                   <v-skeleton-loader type="image" height="100%" v-if="!loadedStartApp"/>
                   <multiple-view v-else :shots.sync="shots" />
                 </v-tab-item>
-                <v-tab-item>Три</v-tab-item>
+                <v-tab-item>
+                  <map-view />
+                </v-tab-item>
               </v-tabs-items>
               
             </v-card>
@@ -63,7 +65,8 @@ export default {
   components:{
     'right-panel': () => import('./components/RightPanel'),
     'zoom-view':()=>import('./components/ZoomView'),
-    'multiple-view': () => import('./components/MultipleView')
+    'multiple-view': () => import('./components/MultipleView'),
+    'map-view': ()=> import('./components/MapView')
   },
   created(){
     instanceRequest.get('/check-status-gee').then(res=>{
@@ -247,12 +250,15 @@ export default {
     height:100%;
   }
 
+  .tab-block{
+    width:100%;
+    height: calc(100vh - 159px);
+  }
+
   .input-width-33 > .v-text-field{
     width:33%;
   }
   .parent-zoomer-image{
-    width:100%;
-    height: calc(100vh - 159px);
     text-align:center;
   }
   .parent-zoomer-image > .zoomer-image-container{
@@ -279,8 +285,6 @@ export default {
 
   
   .cards-images{
-    width:100%;
-    height: calc(100vh - 159px);
     display:flex;
     flex-wrap: wrap;
     overflow: auto;
@@ -307,5 +311,8 @@ export default {
   .card-dialog-loaded-content{
     text-align:Center;
     padding:15px 5px 5px;
+  }
+  .map-block{
+    display:flex;
   }
 </style>

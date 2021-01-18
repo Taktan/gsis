@@ -1,6 +1,6 @@
 <template>
   <div>
-     <div class="parent-zoomer-image">
+     <div class="parent-zoomer-image tab-block">
       <v-zoomer class="zoomer-image-container">
         <img
           :src="shot"

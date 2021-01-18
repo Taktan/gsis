@@ -1,6 +1,6 @@
 <template>
 <div>
-  <div class="cards-images" ref="divCardsImages" >
+  <div class="cards-images tab-block" ref="divCardsImages" >
     <v-card v-for="(value,name) in shots" :key="name" :width="widthCard">
       <img :src="value" />
       <span class="text-in-image">{{name}}</span>
