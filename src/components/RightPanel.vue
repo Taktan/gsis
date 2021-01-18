@@ -65,7 +65,7 @@
         </v-btn>
       </template>
       <v-btn fab dark small color="green" @click="saveToFile()" title="Сохранить файлом"><v-icon>mdi-file-download-outline</v-icon></v-btn>
-      <v-btn fab dark small color="green" title="Загрузить из файла"><v-icon>mdi-file-upload-outline</v-icon></v-btn>
+      <v-btn fab dark small color="green" @click="loadFromFile()" title="Загрузить из файла"><v-icon>mdi-file-upload-outline</v-icon></v-btn>
       <v-btn fab dark small color="green" @click="saveToLocalStorage()" title="Сохранить в localStorage"><v-icon>mdi-cloud-download-outline</v-icon></v-btn>
       <v-btn fab dark small color="green" @click="loadFromLocalStorage()" title="Загрузить из localStorage"><v-icon>mdi-cloud-upload-outline</v-icon></v-btn>
       <v-btn fab dark small color="pink" @click="$emit('load-test')"><v-icon>mdi-cloud-circle</v-icon></v-btn>
@@ -156,17 +156,24 @@ export default {
         return false;
       else return true;
     },
-    formattedData(){
-      return{
-        coordinates: this.coordinates,
-        date: [this.dateStart,this.dateEnd],
-        area: this.area,
-        cloudPercent: this.cloudPercent,
-        scale: this.scale,
-        satellite: this.satellite,
-        bands: this.selectBands,
-        postFunction: this.postFunction,
-        colorImage: this.colorImage,
+    formattedData: {
+      set: function(newValue){
+        Object.keys(newValue).sort().forEach(key=>{
+          this[key] = newValue[key];
+        })
+      },
+      get: function(){
+        return{
+          coordinates: this.coordinates,
+          date: [this.dateStart,this.dateEnd],
+          area: this.area,
+          cloudPercent: this.cloudPercent,
+          scale: this.scale,
+          satellite: this.satellite,
+          bands: this.selectBands,
+          postFunction: this.postFunction,
+          colorImage: this.checkColorImage,
+        }
       }
     }
   },
@@ -226,13 +233,32 @@ export default {
       }
     },
     saveToFile(){
-      let fileToSave = new Blob([JSON.stringify(this.formattedData)], {
-        type: 'application/json',
-        name: "data.json"
-      });
-      window.open(URL.createObjectURL(fileToSave))
+      let a = document.createElement("a");
+      let file = new Blob([JSON.stringify(this.formattedData)], {type: 'application/json'});
+      a.href = URL.createObjectURL(file);
+      a.download = 'data.json';
+      a.click();
+    },
+    loadFromFile(){
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = async ()=>{
+        let data = JSON.parse(await input.files[0].text());
+        // console.log(Object.keys(data).sort());
+        // console.log(Object.keys(this.formattedData).sort());
+        let bool = JSON.stringify(Object.keys(data).sort()) == JSON.stringify(Object.keys(this.formattedData).sort());
+        if(bool){
+          this.formattedData = data;
+        }else{
+          this.$emit("error-snackbar", {
+            "text": "Некорректный синтаксис",
+            "error": true
+          })
+        }
+      }
+      input.click();
     }
-    
   },
 };
 </script>

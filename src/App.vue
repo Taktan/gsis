@@ -30,7 +30,7 @@
           </div>
           <div class="right-panel" >
             <v-progress-circular indeterminate v-if="!statusServer"/>
-            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot" @load-test="loadTestData()"/>
+            <right-panel v-else @get-shots="getShots" :archiveUrl.sync="archive.url" :shot.sync="rightShot" @error-snackbar="showSnackbar" @load-test="loadTestData()"/>
           </div>
         </div>
       </v-container>
@@ -45,7 +45,7 @@
         </div>
       </v-card>
     </v-dialog>
-    <v-snackbar v-model="snackbar.active">{{ snackbar.text }}</v-snackbar>
+    <v-snackbar :color="snackbar.error ? 'error' : 'primary'" v-model="snackbar.active">{{ snackbar.text }}</v-snackbar>
     
   </v-app>
 </template>
@@ -83,7 +83,8 @@ export default {
     },
     snackbar:{
       active: false,
-      text: "Тестовый текст"
+      text: "Тестовый текст",
+      error: false
     },
     tabs: 1,
 
@@ -155,36 +156,17 @@ export default {
       })
     },
     loadTestData(){
-      this.dialogLoaded.text = "Тестовый запрос"
-      this.dialogLoaded.active = true
-      instanceRequest.get('/test-data',{responseType: 'blob'}).then(res=>{
-        if(res.status == 200){
-          this.archive.file = new Blob([res.data], {type:"application/zip"})
-          this.archive.url = URL.createObjectURL(this.archive.file);
-          JSZip().loadAsync(res.data).then(zip=>{
-            this.dialogLoaded.text = "Распаковка архива"
-            let completeShots = {}
-            let indexElement = 0;
-            let countFiles = Object.keys(zip.files).length;
-            zip.forEach(async (name, file)=>{
-              const band = name.substring(10,name.indexOf(".tif")).toUpperCase();
-              let buffer = await file.async("uint8array");
-              let tiff = new Tiff({buffer: buffer}).toCanvas()
-              completeShots[band] = tiff.toDataURL("image/jpeg")
-              this.$set(this,"rightShot", tiff.toDataURL("image/jpeg"))
-              if(++indexElement == countFiles){ // костыли костылики
-                this.$set(this, "shots", completeShots)
-                this.dialogLoaded.active = false
-              }
-            })
-          })
-        }else{
-          console.log(res)
-          this.dialogLoaded.active = false
-          this.snackbar.text = res.data
-          this.snackbar.active = true
-        }
-      })
+      this.snackbar.active = true;
+      this.snackbar.text = "Тест текст";
+      this.snackbar.error = true
+      setTimeout(() => {
+        this.snackbar.error = false
+      }, 5000);
+    },
+    showSnackbar(value){
+      this.snackbar.active = true;
+      this.snackbar.text = value.text;
+      this.snackbar.error = value.error
     }
   }
 };
